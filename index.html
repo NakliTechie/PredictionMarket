@@ -488,6 +488,46 @@
       text-align: right;
     }
 
+    /* Modal Tabs */
+    .modal-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .modal-tab {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .modal-tab:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .modal-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     /* Footer Links */
     footer {
       position: fixed;
@@ -777,46 +817,86 @@
     <div class="modal">
       <h2>HOW TO USE</h2>
       
-      <h3>🎯 What is this?</h3>
-      <p>A simulator to understand how prediction markets work. Control all 4 players (A, B, C, D) to simulate a small market.</p>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="overview" onclick="switchHelpTab('overview')">Overview</button>
+        <button class="modal-tab" data-tab="parimutuel" onclick="switchHelpTab('parimutuel')">Parimutuel</button>
+        <button class="modal-tab" data-tab="lmsr" onclick="switchHelpTab('lmsr')">LMSR</button>
+        <button class="modal-tab" data-tab="demo" onclick="switchHelpTab('demo')">How to Demo</button>
+      </div>
 
-      <h3>📊 Parimutuel Mode</h3>
-      <p>All players place bets into a shared pool. After betting closes, the market is resolved.</p>
-      <ul>
-        <li><strong>Winning bets</strong> split the entire pool proportionally</li>
-        <li><strong>Payout</strong> = stake × (total pool / total on winning side)</li>
-        <li><strong>Losing bets</strong> get nothing</li>
-      </ul>
-      <p><em>Example: If $1000 is staked on YES and $500 on NO, YES bettors split $1500. Each $1 on YES gets $1.50 back.</em></p>
+      <div class="tab-content active" id="tab-overview">
+        <h3>🎯 What is this?</h3>
+        <p>A simulator to understand how prediction markets work. Control all 4 players (A, B, C, D) to simulate a small market.</p>
 
-      <h3>📈 LMSR Mode</h3>
-      <p>Continuous market with dynamic prices. Each trade changes the odds immediately.</p>
-      <ul>
-        <li><strong>LMSR</strong> = Logarithmic Market Scoring Rule</li>
-        <li><strong>Prices</strong> move based on quantity purchased</li>
-        <li><strong>Liquidity (b)</strong> controls how much prices move per trade</li>
-        <li>Buy shares of YES or NO; each share pays $1 if correct</li>
-      </ul>
-      <p><em>Example: Buying 10 YES shares might cost $5.50. If YES wins, those shares redeem for $10. If NO wins, they're worth $0.</em></p>
+        <h3>📊 Market Types</h3>
+        <p>Two modes available:</p>
+        <ul>
+          <li><strong>Parimutuel:</strong> Pool-based betting, winners split the pot</li>
+          <li><strong>LMSR:</strong> Continuous market with dynamic prices</li>
+        </ul>
+        <p>Use the tabs above to learn about each mode in detail.</p>
+      </div>
 
-      <h3>🎮 How to Demo</h3>
-      <ol>
-        <li>Set up the question (Yes/No or Two Options)</li>
-        <li>Choose a mode (Parimutuel or LMSR)</li>
-        <li>Click "Create Market"</li>
-        <li>Select a player (A/B/C/D)</li>
-        <li>Place bets or execute trades</li>
-        <li>Watch odds/payouts update in real-time</li>
-        <li>Resolve the market to see final results</li>
-      </ol>
+      <div class="tab-content" id="tab-parimutuel">
+        <h3>📊 Parimutuel Mode</h3>
+        <p>All players place bets into a shared pool. After betting closes, the market is resolved.</p>
+        
+        <h3>How it Works</h3>
+        <ul>
+          <li><strong>Winning bets</strong> split the entire pool proportionally</li>
+          <li><strong>Payout</strong> = stake × (total pool / total on winning side)</li>
+          <li><strong>Losing bets</strong> get nothing</li>
+        </ul>
+        
+        <h3>Example</h3>
+        <p><em>If $1000 is staked on YES and $500 on NO:</em></p>
+        <ul>
+          <li>Total pool = $1500</li>
+          <li>If YES wins: each $1 on YES gets $1.50 back</li>
+          <li>If NO wins: each $1 on NO gets $3.00 back</li>
+        </ul>
+      </div>
 
-      <h3>💡 Tips</h3>
-      <ul>
-        <li>Use different players to simulate diverse opinions</li>
-        <li>In LMSR, larger trades move prices more</li>
-        <li>Lower liquidity (b) = more volatile prices</li>
-        <li>Reset anytime by creating a new market</li>
-      </ul>
+      <div class="tab-content" id="tab-lmsr">
+        <h3>📈 LMSR Mode</h3>
+        <p>Continuous market with dynamic prices. Each trade changes the odds immediately.</p>
+        
+        <h3>How it Works</h3>
+        <ul>
+          <li><strong>LMSR</strong> = Logarithmic Market Scoring Rule</li>
+          <li><strong>Prices</strong> move based on quantity purchased</li>
+          <li><strong>Liquidity (b)</strong> controls how much prices move per trade</li>
+          <li>Buy shares of YES or NO; each share pays $1 if correct</li>
+        </ul>
+        
+        <h3>Example</h3>
+        <p><em>Buying 10 YES shares might cost $5.50:</em></p>
+        <ul>
+          <li>If YES wins: shares redeem for $10 → +$4.50 profit</li>
+          <li>If NO wins: shares worth $0 → -$5.50 loss</li>
+        </ul>
+      </div>
+
+      <div class="tab-content" id="tab-demo">
+        <h3>🎮 How to Demo</h3>
+        <ol>
+          <li>Set up the question (Yes/No or Two Options)</li>
+          <li>Choose a mode (Parimutuel or LMSR)</li>
+          <li>Click "Create Market"</li>
+          <li>Select a player (A/B/C/D)</li>
+          <li>Place bets or execute trades</li>
+          <li>Watch odds/payouts update in real-time</li>
+          <li>Resolve the market to see final results</li>
+        </ol>
+
+        <h3>💡 Tips</h3>
+        <ul>
+          <li>Use different players to simulate diverse opinions</li>
+          <li>In LMSR, larger trades move prices more</li>
+          <li>Lower liquidity (b) = more volatile prices</li>
+          <li>Reset anytime by creating a new market</li>
+        </ul>
+      </div>
 
       <div class="modal-footer">
         <button class="btn btn-primary" onclick="toggleHelp()">Got it</button>
@@ -1261,6 +1341,17 @@
     function toggleHelp() {
       const modal = document.getElementById('helpModal');
       modal.classList.toggle('active');
+    }
+
+    function switchHelpTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.modal-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+      });
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === 'tab-' + tabName);
+      });
     }
 
     // ==================== INIT ====================
