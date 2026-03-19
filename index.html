@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Chirag Patnaik">
+  <meta name="description" content="Prediction Market Simulator — Parimutuel and LMSR modes. Browser-native, offline-first.">
+  <title>Prediction Market Simulator</title>
+  <style>
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-card: #0f3460;
+      --accent: #4caf50;
+      --accent-hover: #45a049;
+      --danger: #e94560;
+      --danger-hover: #d63850;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --border: rgba(255, 255, 255, 0.1);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .help-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .help-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Mode Tabs */
+    .mode-tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mode-tab {
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-tab:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .mode-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Setup Section */
+    .setup-section {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border);
+    }
+
+    .setup-section h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-hover);
+    }
+
+    /* Game Area */
+    .game-area {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .game-area {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    /* Player Selector */
+    .player-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .player-btn {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .player-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .player-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* Bet/Trade Form */
+    .trade-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .outcome-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .outcome-btn {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .outcome-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .outcome-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* Market Info */
+    .market-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-box {
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .info-box .label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .info-box .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Player Balances */
+    .player-balance {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .player-balance .player {
+      font-weight: 600;
+    }
+
+    .player-balance .balance {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .player-balance .pnl {
+      font-size: 0.85rem;
+    }
+
+    .pnl.positive { color: var(--accent); }
+    .pnl.negative { color: var(--danger); }
+
+    /* Resolution Section */
+    .resolution-section {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .resolution-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* Status Banner */
+    .status-banner {
+      background: var(--bg-secondary);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-banner .icon {
+      font-size: 1.5rem;
+    }
+
+    .status-banner .text {
+      flex: 1;
+    }
+
+    .status-banner .text strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+    }
+
+    .modal h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .modal h3 {
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+
+    .modal p {
+      margin-bottom: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .modal ul, .modal ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .modal li {
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-footer {
+      margin-top: 1.5rem;
+      text-align: right;
+    }
+
+    /* Footer Links */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.75rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+    }
+
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Price History */
+    .price-history {
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+    }
+
+    .price-change {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      margin-bottom: 0.25rem;
+    }
+
+    .price-change.up { color: var(--accent); }
+    .price-change.down { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PREDICTION MARKET SIMULATOR</h1>
+    <button class="help-btn" onclick="toggleHelp()">?</button>
+  </header>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="parimutuel" onclick="switchMode('parimutuel')">Parimutuel</button>
+    <button class="mode-tab" data-mode="lmsr" onclick="switchMode('lmsr')">LMSR</button>
+  </div>
+
+  <main>
+    <!-- Setup Section -->
+    <div class="setup-section">
+      <h2>MARKET SETUP</h2>
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label>Question</label>
+          <input type="text" id="questionText" placeholder="e.g., Will Chennai win IPL match #43?" value="Will Chennai win the match?">
+        </div>
+        <div class="form-group">
+          <label>Question Type</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="questionType" value="yesno" checked onchange="updateQuestionType()">
+              Yes/No
+            </label>
+            <label>
+              <input type="radio" name="questionType" value="twolabel" onchange="updateQuestionType()">
+              Two Options
+            </label>
+          </div>
+        </div>
+        <div class="form-group option-labels hidden" id="optionLabelsGroup">
+          <label>Option Labels (comma-separated)</label>
+          <input type="text" id="optionLabels" placeholder="e.g., Chennai, Mumbai" value="Chennai, Mumbai">
+        </div>
+        <div class="form-group" id="lmsrBGroup" style="min-width: 150px;">
+          <label>LMSR Liquidity (b)</label>
+          <input type="number" id="lmsrB" value="100" min="10" step="10">
+        </div>
+        <button class="btn btn-primary" onclick="initializeMarket()">Create Market</button>
+      </div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="status-banner" id="statusBanner">
+      <span class="icon">📊</span>
+      <div class="text">
+        <strong id="statusTitle">Market Ready</strong>
+        <span id="statusText">Place bets to begin</span>
+      </div>
+    </div>
+
+    <!-- Parimutuel Mode -->
+    <div id="parimutuelMode" class="game-area">
+      <!-- Betting Panel -->
+      <div class="card">
+        <h3>PLACE BET</h3>
+        <div class="player-selector">
+          <button class="player-btn active" data-player="A" onclick="selectPlayer('A')">A</button>
+          <button class="player-btn" data-player="B" onclick="selectPlayer('B')">B</button>
+          <button class="player-btn" data-player="C" onclick="selectPlayer('C')">C</button>
+          <button class="player-btn" data-player="D" onclick="selectPlayer('D')">D</button>
+        </div>
+        <div class="trade-form">
+          <div>
+            <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Outcome</label>
+            <div class="outcome-selector">
+              <button class="outcome-btn active" data-outcome="YES" onclick="selectOutcome('YES')">YES</button>
+              <button class="outcome-btn" data-outcome="NO" onclick="selectOutcome('NO')">NO</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Stake Amount ($)</label>
+            <input type="number" id="pariStake" value="100" min="1" step="10">
+          </div>
+          <button class="btn btn-primary" onclick="placeParimutuelBet()">Place Bet</button>
+        </div>
+
+        <div class="resolution-section">
+          <h3>RESOLVE MARKET</h3>
+          <div class="resolution-buttons">
+            <button class="btn btn-primary" onclick="resolveParimutuel('YES')">YES Wins</button>
+            <button class="btn btn-danger" onclick="resolveParimutuel('NO')">NO Wins</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Market Summary -->
+      <div class="card">
+        <h3>MARKET SUMMARY</h3>
+        <div class="market-info">
+          <div class="info-box">
+            <div class="label">Staked on YES</div>
+            <div class="value" id="pariYesTotal">$0</div>
+          </div>
+          <div class="info-box">
+            <div class="label">Staked on NO</div>
+            <div class="value" id="pariNoTotal">$0</div>
+          </div>
+          <div class="info-box">
+            <div class="label">Total Pool</div>
+            <div class="value" id="pariPoolTotal">$0</div>
+          </div>
+          <div class="info-box">
+            <div class="label">Implied Payout</div>
+            <div class="value" id="pariPayout">—</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">ALL BETS</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Outcome</th>
+              <th>Stake</th>
+            </tr>
+          </thead>
+          <tbody id="pariBetsTable">
+            <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">No bets yet</td></tr>
+          </tbody>
+        </table>
+
+        <div id="pariResults" class="hidden" style="margin-top: 1.5rem;">
+          <h3>RESULTS</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Invested</th>
+                <th>Returned</th>
+                <th>P&L</th>
+              </tr>
+            </thead>
+            <tbody id="pariResultsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LMSR Mode -->
+    <div id="lmsrMode" class="game-area hidden">
+      <!-- Trading Panel -->
+      <div class="card">
+        <h3>EXECUTE TRADE</h3>
+        <div class="player-selector">
+          <button class="player-btn active" data-player="A" onclick="selectPlayer('A')">A</button>
+          <button class="player-btn" data-player="B" onclick="selectPlayer('B')">B</button>
+          <button class="player-btn" data-player="C" onclick="selectPlayer('C')">C</button>
+          <button class="player-btn" data-player="D" onclick="selectPlayer('D')">D</button>
+        </div>
+        <div class="trade-form">
+          <div>
+            <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Buy Outcome</label>
+            <div class="outcome-selector">
+              <button class="outcome-btn active" data-outcome="YES" onclick="selectOutcome('YES')">YES</button>
+              <button class="outcome-btn" data-outcome="NO" onclick="selectOutcome('NO')">NO</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Shares to Buy</label>
+            <input type="number" id="lmsrShares" value="10" min="1" step="1">
+          </div>
+          <div class="info-box" style="text-align: left;">
+            <div class="label">Estimated Cost</div>
+            <div class="value" id="lmsrCost">$0.00</div>
+          </div>
+          <button class="btn btn-primary" onclick="executeLMSRTrade()">Execute Trade</button>
+        </div>
+
+        <div class="resolution-section">
+          <h3>RESOLVE MARKET</h3>
+          <div class="resolution-buttons">
+            <button class="btn btn-primary" onclick="resolveLMSR('YES')">YES Wins</button>
+            <button class="btn btn-danger" onclick="resolveLMSR('NO')">NO Wins</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Market Summary -->
+      <div class="card">
+        <h3>MARKET STATUS</h3>
+        <div class="market-info">
+          <div class="info-box">
+            <div class="label">P(YES)</div>
+            <div class="value" id="lmsrPYes">0.50</div>
+          </div>
+          <div class="info-box">
+            <div class="label">P(NO)</div>
+            <div class="value" id="lmsrPNo">0.50</div>
+          </div>
+          <div class="info-box">
+            <div class="label">q_yes</div>
+            <div class="value" id="lmsrQYes">0</div>
+          </div>
+          <div class="info-box">
+            <div class="label">q_no</div>
+            <div class="value" id="lmsrQNo">0</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">PLAYER BALANCES</h3>
+        <div id="lmsrBalances">
+          <!-- Populated dynamically -->
+        </div>
+
+        <h3 style="margin-top: 1.5rem;">TRADE HISTORY</h3>
+        <div class="price-history" id="lmsrTradeHistory">
+          <div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No trades yet</div>
+        </div>
+
+        <div id="lmsrResults" class="hidden" style="margin-top: 1.5rem;">
+          <h3>FINAL RESULTS</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Initial</th>
+                <th>Final</th>
+                <th>P&L</th>
+              </tr>
+            </thead>
+            <tbody id="lmsrResultsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <a href="https://naklitechie.github.io/PredictionMarket/" target="_blank">🎯 Try it now →</a>
+    <a href="https://github.com/NakliTechie/PredictionMarket" target="_blank">GitHub →</a>
+  </footer>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target === this) toggleHelp()">
+    <div class="modal">
+      <h2>HOW TO USE</h2>
+      
+      <h3>🎯 What is this?</h3>
+      <p>A simulator to understand how prediction markets work. Control all 4 players (A, B, C, D) to simulate a small market.</p>
+
+      <h3>📊 Parimutuel Mode</h3>
+      <p>All players place bets into a shared pool. After betting closes, the market is resolved.</p>
+      <ul>
+        <li><strong>Winning bets</strong> split the entire pool proportionally</li>
+        <li><strong>Payout</strong> = stake × (total pool / total on winning side)</li>
+        <li><strong>Losing bets</strong> get nothing</li>
+      </ul>
+      <p><em>Example: If $1000 is staked on YES and $500 on NO, YES bettors split $1500. Each $1 on YES gets $1.50 back.</em></p>
+
+      <h3>📈 LMSR Mode</h3>
+      <p>Continuous market with dynamic prices. Each trade changes the odds immediately.</p>
+      <ul>
+        <li><strong>LMSR</strong> = Logarithmic Market Scoring Rule</li>
+        <li><strong>Prices</strong> move based on quantity purchased</li>
+        <li><strong>Liquidity (b)</strong> controls how much prices move per trade</li>
+        <li>Buy shares of YES or NO; each share pays $1 if correct</li>
+      </ul>
+      <p><em>Example: Buying 10 YES shares might cost $5.50. If YES wins, those shares redeem for $10. If NO wins, they're worth $0.</em></p>
+
+      <h3>🎮 How to Demo</h3>
+      <ol>
+        <li>Set up the question (Yes/No or Two Options)</li>
+        <li>Choose a mode (Parimutuel or LMSR)</li>
+        <li>Click "Create Market"</li>
+        <li>Select a player (A/B/C/D)</li>
+        <li>Place bets or execute trades</li>
+        <li>Watch odds/payouts update in real-time</li>
+        <li>Resolve the market to see final results</li>
+      </ol>
+
+      <h3>💡 Tips</h3>
+      <ul>
+        <li>Use different players to simulate diverse opinions</li>
+        <li>In LMSR, larger trades move prices more</li>
+        <li>Lower liquidity (b) = more volatile prices</li>
+        <li>Reset anytime by creating a new market</li>
+      </ul>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="toggleHelp()">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== STATE ====================
+    let currentMode = 'parimutuel';
+    let currentPlayer = 'A';
+    let currentOutcome = 'YES';
+    let marketInitialized = false;
+
+    // Parimutuel state
+    let parimutuelState = {
+      bets: [],
+      yesTotal: 0,
+      noTotal: 0,
+      resolved: false,
+      winner: null
+    };
+
+    // LMSR state
+    let lmsrState = {
+      b: 100,
+      qYes: 0,
+      qNo: 0,
+      players: {
+        A: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 },
+        B: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 },
+        C: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 },
+        D: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 }
+      },
+      tradeHistory: [],
+      resolved: false,
+      winner: null
+    };
+
+    // ==================== INITIALIZATION ====================
+    function initializeMarket() {
+      const questionType = document.querySelector('input[name="questionType"]:checked').value;
+      const bValue = parseFloat(document.getElementById('lmsrB').value) || 100;
+
+      // Reset states
+      parimutuelState = { bets: [], yesTotal: 0, noTotal: 0, resolved: false, winner: null };
+      lmsrState = {
+        b: bValue,
+        qYes: 0,
+        qNo: 0,
+        players: {
+          A: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 },
+          B: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 },
+          C: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 },
+          D: { cash: 1000, yesShares: 0, noShares: 0, initialCash: 1000 }
+        },
+        tradeHistory: [],
+        resolved: false,
+        winner: null
+      };
+
+      marketInitialized = true;
+      updateQuestionType();
+      updateParimutuelUI();
+      updateLMSRUI();
+      updateStatus('Market Ready', 'Place bets to begin');
+    }
+
+    function updateQuestionType() {
+      const type = document.querySelector('input[name="questionType"]:checked').value;
+      const labelsGroup = document.getElementById('optionLabelsGroup');
+      const questionInput = document.getElementById('questionText');
+
+      if (type === 'twolabel') {
+        labelsGroup.classList.remove('hidden');
+        const labels = document.getElementById('optionLabels').value.split(',').map(s => s.trim());
+        if (labels.length >= 2 && labels[0] && labels[1]) {
+          questionInput.value = `Who will win: ${labels[0]} or ${labels[1]}?`;
+          // Update outcome buttons
+          document.querySelectorAll('.outcome-btn').forEach(btn => {
+            const outcome = btn.dataset.outcome;
+            if (outcome === 'YES') btn.textContent = labels[0];
+            else if (outcome === 'NO') btn.textContent = labels[1];
+          });
+        }
+      } else {
+        labelsGroup.classList.add('hidden');
+        questionInput.value = 'Will Chennai win the match?';
+        document.querySelectorAll('.outcome-btn').forEach(btn => {
+          const outcome = btn.dataset.outcome;
+          btn.textContent = outcome;
+        });
+      }
+    }
+
+    // ==================== MODE SWITCHING ====================
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+      });
+      document.getElementById('parimutuelMode').classList.toggle('hidden', mode !== 'parimutuel');
+      document.getElementById('lmsrMode').classList.toggle('hidden', mode !== 'lmsr');
+    }
+
+    // ==================== PLAYER & OUTCOME SELECTION ====================
+    function selectPlayer(player) {
+      currentPlayer = player;
+      document.querySelectorAll('.player-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.player === player);
+      });
+    }
+
+    function selectOutcome(outcome) {
+      currentOutcome = outcome;
+      document.querySelectorAll('.outcome-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.outcome === outcome);
+      });
+      // Update LMSR cost estimate
+      if (marketInitialized && currentMode === 'lmsr') {
+        updateLMSRCostEstimate();
+      }
+    }
+
+    // ==================== PARIMUTUEL LOGIC ====================
+    function placeParimutuelBet() {
+      if (!marketInitialized) {
+        alert('Please create a market first!');
+        return;
+      }
+      if (parimutuelState.resolved) {
+        alert('Market already resolved!');
+        return;
+      }
+
+      const stake = parseFloat(document.getElementById('pariStake').value);
+      if (!stake || stake <= 0) {
+        alert('Please enter a valid stake amount');
+        return;
+      }
+
+      parimutuelState.bets.push({
+        player: currentPlayer,
+        outcome: currentOutcome,
+        stake: stake
+      });
+
+      if (currentOutcome === 'YES') {
+        parimutuelState.yesTotal += stake;
+      } else {
+        parimutuelState.noTotal += stake;
+      }
+
+      updateParimutuelUI();
+      updateStatus('Bet Placed', `Player ${currentPlayer} bet $${stake} on ${currentOutcome}`);
+    }
+
+    function resolveParimutuel(winner) {
+      if (!marketInitialized) {
+        alert('Please create a market first!');
+        return;
+      }
+      if (parimutuelState.resolved) {
+        alert('Market already resolved!');
+        return;
+      }
+      if (parimutuelState.bets.length === 0) {
+        alert('No bets placed yet!');
+        return;
+      }
+
+      parimutuelState.resolved = true;
+      parimutuelState.winner = winner;
+
+      const totalPool = parimutuelState.yesTotal + parimutuelState.noTotal;
+      const winningTotal = winner === 'YES' ? parimutuelState.yesTotal : parimutuelState.noTotal;
+
+      // Calculate results per player
+      const playerResults = {};
+      ['A', 'B', 'C', 'D'].forEach(p => {
+        playerResults[p] = { invested: 0, returned: 0 };
+      });
+
+      parimutuelState.bets.forEach(bet => {
+        playerResults[bet.player].invested += bet.stake;
+        if (bet.outcome === winner) {
+          playerResults[bet.player].returned += bet.stake * (totalPool / winningTotal);
+        }
+      });
+
+      // Update UI
+      const resultsTable = document.getElementById('pariResultsTable');
+      resultsTable.innerHTML = '';
+      ['A', 'B', 'C', 'D'].forEach(player => {
+        const result = playerResults[player];
+        if (result.invested > 0) {
+          const pnl = result.returned - result.invested;
+          const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+          resultsTable.innerHTML += `
+            <tr>
+              <td>Player ${player}</td>
+              <td>$${result.invested.toFixed(2)}</td>
+              <td>$${result.returned.toFixed(2)}</td>
+              <td class="pnl ${pnlClass}">$${pnl.toFixed(2)}</td>
+            </tr>
+          `;
+        }
+      });
+
+      document.getElementById('pariResults').classList.remove('hidden');
+      updateStatus('Market Resolved', `${winner} wins! Payouts calculated.`, winner === 'YES' ? '✅' : '❌');
+    }
+
+    function updateParimutuelUI() {
+      const totalPool = parimutuelState.yesTotal + parimutuelState.noTotal;
+      
+      document.getElementById('pariYesTotal').textContent = `$${parimutuelState.yesTotal.toFixed(2)}`;
+      document.getElementById('pariNoTotal').textContent = `$${parimutuelState.noTotal.toFixed(2)}`;
+      document.getElementById('pariPoolTotal').textContent = `$${totalPool.toFixed(2)}`;
+
+      // Implied payout
+      if (parimutuelState.yesTotal > 0 && parimutuelState.noTotal > 0) {
+        const yesPayout = totalPool / parimutuelState.yesTotal;
+        const noPayout = totalPool / parimutuelState.noTotal;
+        document.getElementById('pariPayout').textContent = 
+          `YES: ${yesPayout.toFixed(2)}x | NO: ${noPayout.toFixed(2)}x`;
+      } else if (parimutuelState.yesTotal > 0) {
+        document.getElementById('pariPayout').textContent = 'All on YES';
+      } else if (parimutuelState.noTotal > 0) {
+        document.getElementById('pariPayout').textContent = 'All on NO';
+      } else {
+        document.getElementById('pariPayout').textContent = '—';
+      }
+
+      // Bets table
+      const betsTable = document.getElementById('pariBetsTable');
+      if (parimutuelState.bets.length === 0) {
+        betsTable.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">No bets yet</td></tr>';
+      } else {
+        betsTable.innerHTML = '';
+        parimutuelState.bets.forEach(bet => {
+          betsTable.innerHTML += `
+            <tr>
+              <td>Player ${bet.player}</td>
+              <td>${bet.outcome}</td>
+              <td>$${bet.stake.toFixed(2)}</td>
+            </tr>
+          `;
+        });
+      }
+    }
+
+    // ==================== LMSR LOGIC ====================
+    // LMSR Cost Function: C(q) = b * ln(exp(q_yes/b) + exp(q_no/b))
+    // Price: p_yes = exp(q_yes/b) / (exp(q_yes/b) + exp(q_no/b))
+    
+    function lmsrCost(qYes, qNo) {
+      const b = lmsrState.b;
+      return b * Math.log(Math.exp(qYes / b) + Math.exp(qNo / b));
+    }
+
+    function lmsrPrice(qYes, qNo) {
+      const expYes = Math.exp(qYes / lmsrState.b);
+      const expNo = Math.exp(qNo / lmsrState.b);
+      return expYes / (expYes + expNo);
+    }
+
+    function calculateTradeCost(outcome, shares) {
+      const currentQYes = lmsrState.qYes;
+      const currentQNo = lmsrState.qNo;
+      
+      let newQYes = currentQYes;
+      let newQNo = currentQNo;
+      
+      if (outcome === 'YES') {
+        newQYes += shares;
+      } else {
+        newQNo += shares;
+      }
+      
+      const costBefore = lmsrCost(currentQYes, currentQNo);
+      const costAfter = lmsrCost(newQYes, newQNo);
+      
+      return costAfter - costBefore;
+    }
+
+    function updateLMSRCostEstimate() {
+      const shares = parseFloat(document.getElementById('lmsrShares').value) || 0;
+      const cost = calculateTradeCost(currentOutcome, shares);
+      document.getElementById('lmsrCost').textContent = `$${cost.toFixed(2)}`;
+    }
+
+    function executeLMSRTrade() {
+      if (!marketInitialized) {
+        alert('Please create a market first!');
+        return;
+      }
+      if (lmsrState.resolved) {
+        alert('Market already resolved!');
+        return;
+      }
+
+      const shares = parseFloat(document.getElementById('lmsrShares').value);
+      if (!shares || shares <= 0) {
+        alert('Please enter a valid number of shares');
+        return;
+      }
+
+      const cost = calculateTradeCost(currentOutcome, shares);
+      const player = lmsrState.players[currentPlayer];
+
+      if (player.cash < cost) {
+        alert(`Player ${currentPlayer} only has $${player.cash.toFixed(2)} remaining!`);
+        return;
+      }
+
+      // Execute trade
+      player.cash -= cost;
+      
+      if (currentOutcome === 'YES') {
+        player.yesShares += shares;
+        lmsrState.qYes += shares;
+      } else {
+        player.noShares += shares;
+        lmsrState.qNo += shares;
+      }
+
+      // Record trade
+      const newPrice = lmsrPrice(lmsrState.qYes, lmsrState.qNo);
+      lmsrState.tradeHistory.push({
+        player: currentPlayer,
+        outcome: currentOutcome,
+        shares: shares,
+        cost: cost,
+        newPriceYes: newPrice,
+        timestamp: new Date().toLocaleTimeString()
+      });
+
+      updateLMSRUI();
+      updateLMSRCostEstimate();
+      updateStatus('Trade Executed', `Player ${currentPlayer} bought ${shares} ${currentOutcome} shares for $${cost.toFixed(2)}`);
+    }
+
+    function resolveLMSR(winner) {
+      if (!marketInitialized) {
+        alert('Please create a market first!');
+        return;
+      }
+      if (lmsrState.resolved) {
+        alert('Market already resolved!');
+        return;
+      }
+
+      lmsrState.resolved = true;
+      lmsrState.winner = winner;
+
+      // Calculate final balances
+      const resultsTable = document.getElementById('lmsrResultsTable');
+      resultsTable.innerHTML = '';
+
+      ['A', 'B', 'C', 'D'].forEach(player => {
+        const p = lmsrState.players[player];
+        let finalCash = p.cash;
+        
+        // Redeem winning shares at $1 each
+        if (winner === 'YES') {
+          finalCash += p.yesShares * 1;
+        } else {
+          finalCash += p.noShares * 1;
+        }
+
+        const pnl = finalCash - p.initialCash;
+        const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+
+        resultsTable.innerHTML += `
+          <tr>
+            <td>Player ${player}</td>
+            <td>$${p.initialCash.toFixed(2)}</td>
+            <td>$${finalCash.toFixed(2)}</td>
+            <td class="pnl ${pnlClass}">$${pnl.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('lmsrResults').classList.remove('hidden');
+      updateStatus('Market Resolved', `${winner} wins! Shares redeemed at $1.`, winner === 'YES' ? '✅' : '❌');
+    }
+
+    function updateLMSRUI() {
+      const pYes = lmsrPrice(lmsrState.qYes, lmsrState.qNo);
+      const pNo = lmsrPrice(lmsrState.qNo, lmsrState.qYes);
+
+      document.getElementById('lmsrPYes').textContent = pYes.toFixed(3);
+      document.getElementById('lmsrPNo').textContent = pNo.toFixed(3);
+      document.getElementById('lmsrQYes').textContent = lmsrState.qYes.toFixed(0);
+      document.getElementById('lmsrQNo').textContent = lmsrState.qNo.toFixed(0);
+
+      // Player balances
+      const balancesDiv = document.getElementById('lmsrBalances');
+      balancesDiv.innerHTML = '';
+      ['A', 'B', 'C', 'D'].forEach(player => {
+        const p = lmsrState.players[player];
+        balancesDiv.innerHTML += `
+          <div class="player-balance">
+            <div>
+              <div class="player">Player ${player}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                YES: ${p.yesShares.toFixed(0)} | NO: ${p.noShares.toFixed(0)}
+              </div>
+            </div>
+            <div>
+              <div class="balance">$${p.cash.toFixed(2)}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Trade history
+      const historyDiv = document.getElementById('lmsrTradeHistory');
+      if (lmsrState.tradeHistory.length === 0) {
+        historyDiv.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No trades yet</div>';
+      } else {
+        historyDiv.innerHTML = '';
+        lmsrState.tradeHistory.forEach(trade => {
+          historyDiv.innerHTML += `
+            <div class="price-change">
+              <span><strong>P${trade.player}</strong> ${trade.shares} ${trade.outcome} @ $${trade.cost.toFixed(2)}</span>
+              <span>P(YES): ${trade.newPriceYes.toFixed(3)}</span>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // ==================== UI HELPERS ====================
+    function updateStatus(title, text, icon = '📊') {
+      document.getElementById('statusTitle').textContent = title;
+      document.getElementById('statusText').textContent = text;
+      document.querySelector('.status-banner .icon').textContent = icon;
+    }
+
+    function toggleHelp() {
+      const modal = document.getElementById('helpModal');
+      modal.classList.toggle('active');
+    }
+
+    // ==================== INIT ====================
+    // Initialize on load
+    initializeMarket();
+    updateLMSRCostEstimate();
+  </script>
+</body>
+</html>
