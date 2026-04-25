@@ -7,18 +7,21 @@
   <meta name="description" content="Prediction Market Simulator — Parimutuel and LMSR modes. Browser-native, offline-first.">
   <title>Prediction Market Simulator</title>
   <style>
+    /* Rangrez · bauhaus-10 · 1933 CLOSED — Gestapo raid 11 April 1933 · manifesto severity */
     :root {
-      --bg-primary: #1a1a2e;
-      --bg-secondary: #16213e;
-      --bg-card: #0f3460;
-      --accent: #4caf50;
-      --accent-hover: #45a049;
-      --danger: #e94560;
-      --danger-hover: #d63850;
-      --text-primary: #ffffff;
-      --text-secondary: #b0b0b0;
-      --border: rgba(255, 255, 255, 0.1);
-      --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      --bg-primary: #0a0a0c;        /* BODY */
+      --bg-secondary: #14141c;      /* PANEL */
+      --bg-card: #1a1a24;           /* slightly lifted card */
+      --accent: #1a3ac8;            /* ACT — primary blue = YES/BUY */
+      --accent-hover: #1530a0;
+      --danger: #d82418;            /* BRAND — primary red = NO/SELL */
+      --danger-hover: #a81810;
+      --ok: #f4f4f0;                /* OK — bauhaus white */
+      --warn: #f0c808;              /* signal yellow */
+      --text-primary: #f0c808;      /* INK */
+      --text-secondary: #b0a460;
+      --border: rgba(240, 200, 8, 0.15);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
     }
 
     * {
@@ -97,7 +100,7 @@
     .mode-tab.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: white;
+      color: #fff;
     }
 
     /* Main Container */
@@ -183,7 +186,7 @@
 
     .btn-primary {
       background: var(--accent);
-      color: white;
+      color: #fff;
     }
 
     .btn-primary:hover {
@@ -202,7 +205,7 @@
 
     .btn-danger {
       background: var(--danger);
-      color: white;
+      color: #fff;
     }
 
     .btn-danger:hover {
@@ -264,7 +267,7 @@
     .player-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: white;
+      color: #fff;
     }
 
     /* Bet/Trade Form */
@@ -298,7 +301,7 @@
     .outcome-btn.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: white;
+      color: #fff;
     }
 
     /* Market Info */
@@ -517,7 +520,7 @@
     .modal-tab.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: white;
+      color: #fff;
     }
 
     .tab-content {

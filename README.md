@@ -124,6 +124,12 @@ b: 100  // Lower = more volatile prices, Higher = more stable
 | Build Step | None |
 | Dependencies | Zero |
 
+## Palette
+
+Coloured with **`bauhaus-10 · 1933 CLOSED`** — the closing of the Dessau Bauhaus on 11 April 1933 and the diaspora that followed (Chicago, Tel Aviv, Harvard, Black Mountain). Pure black, signal-yellow ink, primary-red NO vs primary-blue YES. Manifesto severity, fitting for a market where every position is a declaration.
+
+Palette pulled from [**Rangrez**](https://github.com/NakliTechie/rangrez), the global colour-palette library that backs all NakliTechie projects.
+
 ---
 
 ## File Structure
